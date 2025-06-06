@@ -201,7 +201,7 @@ button:hover {
 
   <p style="max-width: 800px; margin: 0 auto 30px; line-height: 1.8; font-size: 1rem; text-align: justify;">
     這份簡易的自我診斷問答主要是為了瞭解你的人格類型。<br/>
-    請針對每個問題在非常符合（⌾）、符合（◯）、不清楚（△）、不符合（╳）之中擇一作答。<br/>
+    請針對每個問題在非常符合、符合、不清楚、不符合 之中擇一作答。<br/>
     不僅只考慮你現在的感覺或行為，也請回顧過去幾年內你擁有什麼樣的感受？是如何行動的？進而選出最貼切的答案。
   </p>
 
@@ -420,41 +420,41 @@ button:hover {
     resultDiv.innerHTML = `
       <div class="result-block">
         <strong>主要人格特徵：</strong>
-        <ol>
+        <ul>
           ${main.map(r => `
             <li>
               <span class="personality-title">${r.name}：${r.score} 分</span>
               <div class="personality-desc">${r.desc}</div>
             </li>
           `).join("")}
-        </ol>
+        </ul>
       </div>
 
       ${secondary.length > 0 ? `
       <div class="result-block">
         <strong>輔助人格特徵：</strong>
-        <ol>
+        <ul>
           ${secondary.map(r => `
             <li>
               <span class="personality-title">${r.name}：${r.score} 分</span>
               <div class="personality-desc">${r.desc}</div>
             </li>
           `).join("")}
-        </ol>
+        </ul>
       </div>
       ` : ""}
 
       ${others.length > 0 ? `
       <div class="result-block">
         <strong>其他人格特徵：</strong>
-        <ol>
+        <ul>
           ${others.map(r => `
             <li>
               <span class="personality-title">${r.name}：${r.score} 分</span>
               <div class="personality-desc">${r.desc}</div>
             </li>
           `).join("")}
-        </ol>
+        </ul>
       </div>
       ` : ""}
           <div style="max-width: 800px; margin: 30px auto 0; font-size: 0.9rem; color: #666; line-height: 1.6;">
