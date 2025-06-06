@@ -386,17 +386,19 @@ button:hover {
         score
       }));
 
-      // 3. 由高到低排序，取前三
-      results.sort((a, b) => b.score - a.score);
-      const top3 = results.slice(0, 3);
-
-      // 4. 把前三名顯示到 #result
+      // 過濾掉分數為 0 的人格
+      const nonZeroResults = results.filter(r => r.score > 0);
+      
+      // 分數由高到低排序
+      nonZeroResults.sort((a, b) => b.score - a.score);
+      
+      // 顯示所有非 0 分數的結果
       const resultDiv = document.getElementById("result");
       resultDiv.innerHTML = `
         <div class="result-block">
-          <strong>Top 3 人格特徵：</strong>
+          <strong>人格特徵（分數不為 0）：</strong>
           <ol>
-            ${top3.map(r => `
+            ${nonZeroResults.map(r => `
               <li>
                 <span class="personality-title">${r.name}：${r.score} 分</span>
                 <div class="personality-desc">${r.desc}</div>
