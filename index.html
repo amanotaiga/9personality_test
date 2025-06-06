@@ -69,33 +69,36 @@ h1 {
 }
 
 /* ===============================================================
-   6. 選項區塊樣式
+   6. Button Group 樣式 (取代原本的 radio 顯示)
    =============================================================== */
-.option-group {
-  margin-left: 20px;
-  margin-top: 10px;
+.button-group {
   display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
-.option-group label {
-  background: #f1f5f9;
+.likert-btn {
+  flex: 1;
+  padding: 10px;
+  background-color: #e9ecef;
+  border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 8px 12px;
-  margin-right: 12px;
-  margin-bottom: 8px;
+  text-align: center;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-  display: flex;
-  align-items: center;
+  transition: all 0.2s;
+  user-select: none;
   font-size: 0.95rem;
   color: #434343;
 }
-.option-group label:hover {
-  background: #e2e8f0;
+.likert-btn:hover {
+  background-color: #dee2e6;
 }
-.option-group input[type="radio"] {
-  margin-right: 6px;
-  accent-color: #4c51bf; /* Chrome/Edge 皆可控制 radio 顏色 */
+.likert-btn.selected {
+  background-color: #4c6ef5;
+  color: #fff;
+  font-weight: bold;
+  border-color: #3b5bdb;
 }
 
 /* ===============================================================
@@ -174,9 +177,9 @@ button:hover {
   .question strong {
     font-size: 1rem;
   }
-  .option-group label {
+  .likert-btn {
     flex: 1 1 45%;
-    padding: 6px 10px;
+    padding: 8px;
     font-size: 0.9rem;
   }
   button {
@@ -193,7 +196,6 @@ button:hover {
     font-size: 0.9rem;
   }
 }
-
   </style>
 </head>
 <body onload="renderQuestions()">
@@ -201,7 +203,7 @@ button:hover {
 
   <p style="max-width: 800px; margin: 0 auto 30px; line-height: 1.8; font-size: 1rem; text-align: justify;">
     這份簡易的自我診斷問答主要是為了瞭解你的人格類型。<br/>
-    請針對每個問題在非常符合、符合、不清楚、不符合 之中擇一作答。<br/>
+    請針對每個問題在「非常符合」「符合」「不清楚」「不符合」之中擇一作答。<br/>
     不僅只考慮你現在的感覺或行為，也請回顧過去幾年內你擁有什麼樣的感受？是如何行動的？進而選出最貼切的答案。
   </p>
 
@@ -218,16 +220,19 @@ button:hover {
   <script>
     // ─── 1. 問題陣列 (90題) ─────────────────────────────────────────
     const questions = [
+      // 逃避型（Avoidant）
       "因為討厭被拒絕、被貶低，所以不想從事須要與許多人往來的工作。",
       "不想要那些對自己沒有好感的人扯上關係。",
       "因為不能被討厭，所以即使很親近的人也會壓抑自己去配合他。",
-      "總是擔心自已會不會被嘲笑、會不會被排擠。",
+      "總是擔心自己會不會被嘲笑、會不會被排擠。",
       "約好要出門與人碰面，但常常事到臨頭才取消。",
       "覺得反正自己沒有魅力，不太受人喜歡。",
       "想要做些新嘗試時，總會擔心不成功，常常在還沒做之前就先放棄。",
       "不太喜歡穿泳衣或是與對方有身體上的接觸。",
       "很不喜歡與人面對面說話。",
       "覺得要表現自己的心情或感覺是很可恥的事，所以很不擅長。",
+
+      // 依賴型（Dependent）
       "連一點點小事，也不能自己一個人決定。",
       "重要的事或麻煩的事大多都請人幫忙做。",
       "人家一拜託，就無法說 No，最後都會答應。",
@@ -238,6 +243,8 @@ button:hover {
       "對誰都表現得很和氣，外表看起來優點很多。",
       "就算知道這樣不好，但要是覺得對方可憐，就會忍不住寵愛他。",
       "喜歡服務別人，讓別人開心。",
+
+      // 強迫型（Obsessive–Compulsive）
       "總是太拘泥細節。",
       "想做得很完美，但常常時間不夠。",
       "太過忙於工作或讀書，往往把娛樂跟人交往放在次要。",
@@ -248,6 +255,8 @@ button:hover {
       "有非常頑固且無法妥協之處。",
       "比起損失利益，更重視人情義理或責任、面子。",
       "很有禮貌，有古板拘謹的一面。",
+
+      // 自戀型（Narcissistic）
       "認為自己有世人還未察覺的才能或優點。",
       "會夢想自己可以功成名就，然後遇見理想的戀人。",
       "自己有與眾不同之處，是特別的人。",
@@ -258,6 +267,8 @@ button:hover {
       "看到朋友或認識的人很幸福，有時候心裡就會覺得嫉妒。",
       "常被認為態度傲慢或是自尊心太強。",
       "對沒有利用價值的人就很冷淡。",
+
+      // 反社會型（Antisocial）
       "曾一再做出違法的事。",
       "曾經為了自己的利益或快樂欺騙過別人。",
       "想到什麼做什麼，比起考慮將來，覺得及時行樂就好。",
@@ -268,6 +279,8 @@ button:hover {
       "喜歡從事緊張刺激的事。",
       "與其被當成膽小鬼，寧願選擇戰鬥。",
       "比起安全又平凡的日常生活，更愛充滿刺激與冒險的人生。",
+
+      // 邊緣型（Borderline）
       "擔心害怕被重要的人拋棄，拼命地抓住對方或者是為了不讓對方離開做出一些事讓他困擾。",
       "不是把對方想得太理想，就是幻滅得太嚴重，兩者落差很大。",
       "有時候會越來越搞不清楚自己究竟是怎樣的人。",
@@ -278,6 +291,8 @@ button:hover {
       "就算只是一點小事，只要不如己意就會陷入激烈的憤怒之中。",
       "對自己想法深信不疑，或是有時候會突然失去部分記憶。",
       "覺得自己是沒什麼價值的人。",
+
+      // 演技型（Histrionic）
       "喜歡成為眾人關心注目的目標。",
       "很懂得吸引異性的眼光。",
       "有很善變，容易見異思遷的一面。",
@@ -288,24 +303,28 @@ button:hover {
       "一認識之後馬上就能很輕鬆地與人交談。",
       "很擅長把謊話講得像真的一樣，讓對方相信。",
       "穿著打扮有模有樣的，很有魅力。",
+
+      // 亞斯伯格型（Schizoid／Asperger）
       "因為喜歡孤獨，所以並不會想要跟任何人有親密的關係。",
       "比較適合一個人行動。",
       "有時候會被人說反應或是說話不懂得看場合。",
       "曾被人說是怪人或很獨特。",
-      "會自己一個人自顧自的說話。",
+      "會自己一個人自顧自地說話。",
       "對清楚規定的做法或特定的東西非常執著。",
       "對有興趣的領域擁有非常豐富的知識。",
-      "比起把人當成對象把物品當成對象更符合你的性格。",
+      "比起把人當成對象，把物品當成對象更符合你的性格。",
       "不太在乎別人怎麼想。",
       "沒有什麼喜怒哀樂，總是很冷靜。",
-      "覺得他人是不可輕忽的",
-      "雖說是朋友或夥伴也是有不可信任的時候。",
+
+      // 妄想型（Paranoid）
+      "覺得他人是不可輕忽的。",
+      "雖說是朋友或夥伴，也有不可信任的時候。",
       "不會對別人說出自己的秘密或隱私。",
       "經常被別人說的話刺傷。",
       "過了很長的時間都不會忘記曾經受到傷害的怨恨。",
       "被人諷刺或是責難，就會怒上心頭。",
       "曾經懷疑配偶或是戀人是不是瞞著自己背叛過自己。",
-      "會把別人的言外之言往壞處想。",
+      "會把別人的言外之意往壞處想。",
       "不能原諒對方爽約或是說錯話。",
       "經常覺得別人好像都在說自己的壞話。"
     ];
@@ -327,6 +346,9 @@ button:hover {
       { name: "妄想型",    desc: "打從心底就不相信別人" }
     ];
 
+    // ─── 用來儲存每題答案的陣列（index = 問題編號），初始為 null ──────────
+    const selectedAnswers = Array(questions.length).fill(null);
+
     /**
      * renderQuestions():
      *   在 body onload 時呼叫，將 90 題動態填入 <div id="questionsContainer">
@@ -334,21 +356,54 @@ button:hover {
     function renderQuestions() {
       const container = document.getElementById("questionsContainer");
       container.innerHTML = "";  // 先清空
+
       questions.forEach((q, i) => {
         const div = document.createElement("div");
         div.className = "question";
+
+        // 將 optionLabels 做為按鈕呈現
+        const buttonsHTML = optionLabels.map((label, idx) => `
+          <div class="likert-btn" 
+               data-question="${i}" 
+               data-value="${optionValues[idx]}" 
+               onclick="selectOption(${i}, ${idx})">
+            ${label}
+          </div>
+        `).join("");
+
         div.innerHTML = `
           <strong>Q${i + 1}：</strong> ${q}
-          <div class="option-group">
-            ${optionLabels.map((label, idx) =>
-              `<label>
-                <input type="radio" name="q${i}" value="${optionValues[idx]}"> ${label}
-              </label>`
-            ).join("")}
+          <div class="button-group" id="group-${i}">
+            ${buttonsHTML}
           </div>
+          <input type="hidden" name="q${i}" id="q${i}" value="" />
         `;
+
         container.appendChild(div);
       });
+    }
+
+    /**
+     * selectOption(qIdx, optIdx):
+     *   當使用者點擊按鈕時，更新該題的選擇狀態：
+     *   1. 將同題所有按鈕的 selected 樣式移除
+     *   2. 針對被選的按鈕加上 selected 樣式
+     *   3. 更新 selectedAnswers 陣列 & 隱藏 input 的值
+     */
+    function selectOption(qIdx, optIdx) {
+      const group = document.getElementById(`group-${qIdx}`);
+      const buttons = group.querySelectorAll(".likert-btn");
+
+      // 移除其他按鈕的 .selected
+      buttons.forEach(btn => btn.classList.remove("selected"));
+
+      // 讓被點擊的按鈕加上 .selected
+      buttons[optIdx].classList.add("selected");
+
+      // 將分數存到 selectedAnswers，存到隱藏 input
+      const score = parseInt(buttons[optIdx].dataset.value, 10);
+      selectedAnswers[qIdx] = score;
+      document.getElementById(`q${qIdx}`).value = score;
     }
 
     /**
@@ -358,113 +413,106 @@ button:hover {
      *   3. 根據分數高低排序，取前三名，並顯示「類型名稱 + 簡介」
      */
     function calculateScore() {
-      const form = document.forms["quizForm"];
-      const scores = new Array(9).fill(0);
-      let incomplete = false;
-
-      // 1. 驗證：每一題是否都有勾選
+      // 先檢查是否每題都已經填寫
       for (let i = 0; i < questions.length; i++) {
-        const radios = form[`q${i}`];
-        let selected = false;
-
-        if (radios && radios.length) {
-          for (let r of radios) {
-            if (r.checked) {
-              selected = true;
-              // 把該題分數加到「第 floor(i/10) 組」
-              scores[Math.floor(i / 10)] += parseInt(r.value);
-              break;
-            }
-          }
-        }
-        if (!selected) {
+        if (selectedAnswers[i] === null) {
           alert(`請回答第 ${i + 1} 題`);
-          incomplete = true;
-          break;
+          return;
         }
       }
-      if (incomplete) return;
 
-      // 2. 構造九組結果 { name, desc, score }
+      // 計算每 10 題一組的總分，總共 9 組
+      const scores = new Array(9).fill(0);
+      for (let i = 0; i < questions.length; i++) {
+        const groupIndex = Math.floor(i / 10);
+        scores[groupIndex] += selectedAnswers[i];
+      }
+
+      // 構造結果物件陣列 { name, desc, score }
       const results = scores.map((score, idx) => ({
         name: personalityMap[idx].name,
         desc: personalityMap[idx].desc,
         score
       }));
 
-    // 過濾掉分數為 0 的人格
-    const nonZeroResults = results.filter(r => r.score > 0);
+      // 過濾掉分數為 0 的
+      const nonZeroResults = results.filter(r => r.score > 0);
 
-    // 分數由高到低排序
-    nonZeroResults.sort((a, b) => b.score - a.score);
+      // 按分數由高到低排序
+      nonZeroResults.sort((a, b) => b.score - a.score);
 
-    // 根據分數分組
-    const grouped = {};
-    nonZeroResults.forEach(r => {
-      if (!grouped[r.score]) grouped[r.score] = [];
-      grouped[r.score].push(r);
-    });
+      // 分數相同者歸為同一組
+      const grouped = {};
+      nonZeroResults.forEach(r => {
+        if (!grouped[r.score]) grouped[r.score] = [];
+        grouped[r.score].push(r);
+      });
 
-    // 取得依照分數遞減排序的 score 群組
-    const scoreGroups = Object.keys(grouped)
-      .map(score => parseInt(score))
-      .sort((a, b) => b - a);
+      // 取得由大到小排序過的「分數」清單
+      const scoreGroups = Object.keys(grouped)
+        .map(s => parseInt(s, 10))
+        .sort((a, b) => b - a);
 
-    // 分類
-    const main = grouped[scoreGroups[0]];
-    const secondary = scoreGroups.length > 1 ? grouped[scoreGroups[1]] : [];
-    const others = scoreGroups.slice(2).flatMap(score => grouped[score]);
+      // 第一名群組、第二名群組、其他群組
+      const main = grouped[scoreGroups[0]] || [];
+      const secondary = scoreGroups.length > 1 ? grouped[scoreGroups[1]] : [];
+      const others = scoreGroups.slice(2).flatMap(s => grouped[s]);
 
-    // 顯示
-    const resultDiv = document.getElementById("result");
-    resultDiv.innerHTML = `
-      <div class="result-block">
-        <strong>主要人格特徵：</strong>
-        <ul>
-          ${main.map(r => `
-            <li>
-              <span class="personality-title">${r.name}：${r.score} 分</span>
-              <div class="personality-desc">${r.desc}</div>
-            </li>
-          `).join("")}
-        </ul>
-      </div>
+      // 顯示結果
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = `
+        <div class="result-block">
+          <strong>主要人格特徵：</strong>
+          <ul>
+            ${main.map(r => `
+              <li>
+                <span class="personality-title">${r.name}：${r.score} 分</span>
+                <div class="personality-desc">${r.desc}</div>
+              </li>
+            `).join("")}
+          </ul>
+        </div>
 
-      ${secondary.length > 0 ? `
-      <div class="result-block">
-        <strong>輔助人格特徵：</strong>
-        <ul>
-          ${secondary.map(r => `
-            <li>
-              <span class="personality-title">${r.name}：${r.score} 分</span>
-              <div class="personality-desc">${r.desc}</div>
-            </li>
-          `).join("")}
-        </ul>
-      </div>
-      ` : ""}
+        ${secondary.length > 0 ? `
+        <div class="result-block">
+          <strong>輔助人格特徵：</strong>
+          <ul>
+            ${secondary.map(r => `
+              <li>
+                <span class="personality-title">${r.name}：${r.score} 分</span>
+                <div class="personality-desc">${r.desc}</div>
+              </li>
+            `).join("")}
+          </ul>
+        </div>
+        ` : ""}
 
-      ${others.length > 0 ? `
-      <div class="result-block">
-        <strong>其他人格特徵：</strong>
-        <ul>
-          ${others.map(r => `
-            <li>
-              <span class="personality-title">${r.name}：${r.score} 分</span>
-              <div class="personality-desc">${r.desc}</div>
-            </li>
-          `).join("")}
-        </ul>
-      </div>
-      ` : ""}
-          <div style="max-width: 800px; margin: 30px auto 0; font-size: 0.9rem; color: #666; line-height: 1.6;">
-      <strong>參考資料：</strong><br/>
-      本測驗靈感與分類架構參考自：<br/>
-      《<a href="https://www.eslite.com/product/1001110932578806?srsltid=AfmBOooylC-HUfkcRIFiSq5Rbns5SUs92euCfCvxXgFyLL5_R64RdKFI" target="_blank" style="color:#4c51bf;text-decoration:underline;">戀愛這種病：解讀自我與對方的人格，診斷愛情的現在與未來</a>》<br/>
-      原書名：《なぜいつも似たような人を好きになるのか》<br/>
-      作者：岡田尊司　譯者：張婷婷　出版社：時報文化出版企業股份有限公司（2017/04/05）
-    </div>
-    `;
+        ${others.length > 0 ? `
+        <div class="result-block">
+          <strong>其他人格特徵：</strong>
+          <ul>
+            ${others.map(r => `
+              <li>
+                <span class="personality-title">${r.name}：${r.score} 分</span>
+                <div class="personality-desc">${r.desc}</div>
+              </li>
+            `).join("")}
+          </ul>
+        </div>
+        ` : ""}
+
+        <div style="max-width: 800px; margin: 30px auto 0; font-size: 0.9rem; color: #666; line-height: 1.6;">
+          <strong>參考資料：</strong><br/>
+          本測驗靈感與分類架構參考自：<br/>
+          《<a href="https://www.eslite.com/product/1001110932578806?srsltid=AfmBOooylC-HUfkcRIFiSq5Rbns5SUs92euCfCvxXgFyLL5_R64RdKFI" 
+               target="_blank" 
+               style="color:#4c51bf;text-decoration:underline;">
+            戀愛這種病：解讀自我與對方的人格，診斷愛情的現在與未來
+          </a>》<br/>
+          原書名：《なぜいつも似たような人を好きになるのか》<br/>
+          作者：岡田尊司　譯者：張婷婷　出版社：時報文化出版企業股份有限公司（2017/04/05）
+        </div>
+      `;
     }
   </script>
 </body>
