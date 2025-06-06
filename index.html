@@ -346,26 +346,24 @@ button:hover {
       { name: "妄想型",    desc: "打從心底就不相信別人" }
     ];
 
-    // ─── 用來儲存每題答案的陣列（index = 問題編號），初始為 null ──────────
+    // ─── 用來儲存每題答案的陣列（index = 題號），初始為 null ───
     const selectedAnswers = Array(questions.length).fill(null);
 
-    /**
-     * renderQuestions():
-     *   在 body onload 時呼叫，將 90 題動態填入 <div id="questionsContainer">
-     */
     function renderQuestions() {
       const container = document.getElementById("questionsContainer");
       container.innerHTML = "";  // 先清空
 
       questions.forEach((q, i) => {
+        // 1) 給每題 div 加上 id="question-i"
         const div = document.createElement("div");
         div.className = "question";
+        div.id = `question-${i}`; 
 
-        // 將 optionLabels 做為按鈕呈現
+        // 2) 按鈕 HTML（四個選項）
         const buttonsHTML = optionLabels.map((label, idx) => `
-          <div class="likert-btn" 
-               data-question="${i}" 
-               data-value="${optionValues[idx]}" 
+          <div class="likert-btn"
+               data-question="${i}"
+               data-value="${optionValues[idx]}"
                onclick="selectOption(${i}, ${idx})">
             ${label}
           </div>
@@ -378,18 +376,10 @@ button:hover {
           </div>
           <input type="hidden" name="q${i}" id="q${i}" value="" />
         `;
-
         container.appendChild(div);
       });
     }
 
-    /**
-     * selectOption(qIdx, optIdx):
-     *   當使用者點擊按鈕時，更新該題的選擇狀態：
-     *   1. 將同題所有按鈕的 selected 樣式移除
-     *   2. 針對被選的按鈕加上 selected 樣式
-     *   3. 更新 selectedAnswers 陣列 & 隱藏 input 的值
-     */
     function selectOption(qIdx, optIdx) {
       const group = document.getElementById(`group-${qIdx}`);
       const buttons = group.querySelectorAll(".likert-btn");
@@ -398,67 +388,71 @@ button:hover {
       buttons.forEach(btn => btn.classList.remove("selected"));
 
       // 讓被點擊的按鈕加上 .selected
-      buttons[optIdx].classList.add("selected");
+      const chosenBtn = buttons[optIdx];
+      chosenBtn.classList.add("selected");
 
       // 將分數存到 selectedAnswers，存到隱藏 input
-      const score = parseInt(buttons[optIdx].dataset.value, 10);
+      const score = parseInt(chosenBtn.dataset.value, 10);
       selectedAnswers[qIdx] = score;
       document.getElementById(`q${qIdx}`).value = score;
     }
 
-    /**
-     * calculateScore():
-     *   1. 檢查每一題是否都有選項，若有題目沒選則 alert 提示並中止
-     *   2. 計算每 10 題一組的總分，得到 9 個分數
-     *   3. 根據分數高低排序，取前三名，並顯示「類型名稱 + 簡介」
-     */
     function calculateScore() {
-      // 先檢查是否每題都已經填寫
+      // 1) 找第一個還沒填的題目 index
+      let firstUnanswered = -1;
       for (let i = 0; i < questions.length; i++) {
         if (selectedAnswers[i] === null) {
-          alert(`請回答第 ${i + 1} 題`);
-          return;
+          firstUnanswered = i;
+          break;
         }
       }
 
-      // 計算每 10 題一組的總分，總共 9 組
+      // 如果有題目沒答，就滾動到那一題並提示
+      if (firstUnanswered !== -1) {
+        // Scroll to that question
+        const targetDiv = document.getElementById(`question-${firstUnanswered}`);
+        targetDiv.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+        alert(`請回答第 ${firstUnanswered + 1} 題。`);
+        return;
+      }
+
+      // 2) 全部都有答案，開始計算分數（每 10 題為一組，共 9 組）
       const scores = new Array(9).fill(0);
       for (let i = 0; i < questions.length; i++) {
         const groupIndex = Math.floor(i / 10);
         scores[groupIndex] += selectedAnswers[i];
       }
 
-      // 構造結果物件陣列 { name, desc, score }
+      // 3) 構造結果物件陣列 { name, desc, score }
       const results = scores.map((score, idx) => ({
         name: personalityMap[idx].name,
         desc: personalityMap[idx].desc,
         score
       }));
 
-      // 過濾掉分數為 0 的
+      // 4) 過濾掉分數為 0，並排序
       const nonZeroResults = results.filter(r => r.score > 0);
-
-      // 按分數由高到低排序
       nonZeroResults.sort((a, b) => b.score - a.score);
 
-      // 分數相同者歸為同一組
+      // 5) 如果分數相同就放成一組
       const grouped = {};
       nonZeroResults.forEach(r => {
         if (!grouped[r.score]) grouped[r.score] = [];
         grouped[r.score].push(r);
       });
 
-      // 取得由大到小排序過的「分數」清單
       const scoreGroups = Object.keys(grouped)
-        .map(s => parseInt(s, 10))
-        .sort((a, b) => b - a);
+                               .map(s => parseInt(s, 10))
+                               .sort((a, b) => b - a);
 
-      // 第一名群組、第二名群組、其他群組
       const main = grouped[scoreGroups[0]] || [];
       const secondary = scoreGroups.length > 1 ? grouped[scoreGroups[1]] : [];
       const others = scoreGroups.slice(2).flatMap(s => grouped[s]);
 
-      // 顯示結果
+      // 6) 顯示結果
       const resultDiv = document.getElementById("result");
       resultDiv.innerHTML = `
         <div class="result-block">
@@ -504,15 +498,17 @@ button:hover {
         <div style="max-width: 800px; margin: 30px auto 0; font-size: 0.9rem; color: #666; line-height: 1.6;">
           <strong>參考資料：</strong><br/>
           本測驗靈感與分類架構參考自：<br/>
-          《<a href="https://www.eslite.com/product/1001110932578806" 
+          《<a href="https://www.eslite.com/product/1001110932578806?srsltid=AfmBOooylC-HUfkcRIFiSq5Rbns5SUs92euCfCvxXgFyLL5_R64RdKFI" 
                target="_blank" 
                style="color:#4c51bf;text-decoration:underline;">
             戀愛這種病：解讀自我與對方的人格，診斷愛情的現在與未來
           </a>》<br/>
-          原書名：《なぜいつも似たような人を好きになるのか》<br/>
+          原書名：《なぜいつも似たような人を喜歡的を書かれるのか》<br/>
           作者：岡田尊司　譯者：張婷婷　出版社：時報文化出版企業股份有限公司（2017/04/05）
         </div>
       `;
+
+      // 7) 滾動到結果區塊
       resultDiv.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   </script>
