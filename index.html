@@ -331,16 +331,16 @@ button:hover {
       questions.forEach((q, i) => {
         const div = document.createElement("div");
         div.className = "question";
-        div.innerHTML = 
+        div.innerHTML = `
           <strong>Q${i + 1}：</strong> ${q}
           <div class="option-group">
             ${optionLabels.map((label, idx) =>
-              <label>
+              `<label>
                 <input type="radio" name="q${i}" value="${optionValues[idx]}"> ${label}
-              </label>
+              </label>`
             ).join("")}
           </div>
-        ;
+        `;
         container.appendChild(div);
       });
     }
@@ -358,7 +358,7 @@ button:hover {
 
       // 1. 驗證：每一題是否都有勾選
       for (let i = 0; i < questions.length; i++) {
-        const radios = form[q${i}];
+        const radios = form[`q${i}`];
         let selected = false;
 
         if (radios && radios.length) {
@@ -372,7 +372,7 @@ button:hover {
           }
         }
         if (!selected) {
-          alert(請回答第 ${i + 1} 題);
+          alert(`請回答第 ${i + 1} 題`);
           incomplete = true;
           break;
         }
@@ -392,19 +392,19 @@ button:hover {
 
       // 4. 把前三名顯示到 #result
       const resultDiv = document.getElementById("result");
-      resultDiv.innerHTML = 
+      resultDiv.innerHTML = `
         <div class="result-block">
           <strong>Top 3 人格特徵：</strong>
           <ol>
-            ${top3.map(r => 
+            ${top3.map(r => `
               <li>
                 <span class="personality-title">${r.name}：${r.score} 分</span>
                 <div class="personality-desc">${r.desc}</div>
               </li>
-            ).join("")}
+            `).join("")}
           </ol>
         </div>
-      ;
+      `;
     }
   </script>
 </body>
