@@ -384,19 +384,7 @@ button:hover {
         }
       }
       if (incomplete) return;
-      
-      const referenceHTML = `
-        <div style="max-width: 800px; margin: 30px auto 0; font-size: 0.9rem; color: #666; line-height: 1.6;">
-          <strong>參考資料：</strong><br/>
-          本測驗靈感與分類架構參考自：<br/>
-          《<a href="https://www.eslite.com/product/1001110932578806?srsltid=AfmBOooylC-HUfkcRIFiSq5Rbns5SUs92euCfCvxXgFyLL5_R64RdKFI"
-              target="_blank" style="color:#4c51bf;text-decoration:underline;">
-            戀愛這種病：解讀自我與對方的人格，診斷愛情的現在與未來
-          </a>》<br/>
-          原書名：《なぜいつも似たような人を好きになるのか》<br/>
-          作者：岡田尊司　譯者：張婷婷　出版社：時報文化出版企業股份有限公司（2017/04/05）
-        </div>
-      `;
+
       // 2. 構造九組結果 { name, desc, score }
       const results = scores.map((score, idx) => ({
         name: personalityMap[idx].name,
@@ -405,53 +393,78 @@ button:hover {
       }));
 
     // 過濾掉分數為 0 的人格
-      const nonZeroResults = results.filter(r => r.score > 0);
-      nonZeroResults.sort((a, b) => b.score - a.score);
+    const nonZeroResults = results.filter(r => r.score > 0);
+
+    // 分數由高到低排序
+    nonZeroResults.sort((a, b) => b.score - a.score);
 
     // 根據分數分組
-      const grouped = {};
-      nonZeroResults.forEach(r => {
-        if (!grouped[r.score]) grouped[r.score] = [];
-        grouped[r.score].push(r);
-      });
+    const grouped = {};
+    nonZeroResults.forEach(r => {
+      if (!grouped[r.score]) grouped[r.score] = [];
+      grouped[r.score].push(r);
+    });
 
     // 取得依照分數遞減排序的 score 群組
-      const scoreGroups = Object.keys(grouped)
-        .map(s => parseInt(s, 10))
-        .sort((a, b) => b - a);
+    const scoreGroups = Object.keys(grouped)
+      .map(score => parseInt(score))
+      .sort((a, b) => b - a);
 
-      // 5. Generate one “section” per score
-      const resultDiv = document.getElementById("result");
-      resultDiv.innerHTML = scoreGroups
-        .map((score, idx) => {
-          // You can pick custom titles per index (e.g. “主要 / 輔助 / その他”),
-          // or just show “Rank 1 / Rank 2 / Rank 3” etc.
-          const title =
-            idx === 0
-              ? "主要人格特徵："
-              : idx === 1
-              ? "輔助人格特徵："
-              : "其他人格特徵：";
+    // 分類
+    const main = grouped[scoreGroups[0]];
+    const secondary = scoreGroups.length > 1 ? grouped[scoreGroups[1]] : [];
+    const others = scoreGroups.slice(2).flatMap(score => grouped[score]);
 
-          return `
-            <div class="result-block">
-              <strong>${title}</strong>
-              <ul>
-                ${grouped[score]
-                  .map(
-                    r => `
-                  <li>
-                    <span class="personality-title">${r.name}：${r.score} 分</span>
-                    <div class="personality-desc">${r.desc}</div>
-                  </li>
-                `
-                  )
-                  .join("")}
-              </ul>
-            </div>
-          `;
-        })
-        .join("") + referenceHTML;  // ← ここで最後に「參考資料」ブロックを追加;
+    // 顯示
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = `
+      <div class="result-block">
+        <strong>主要人格特徵：</strong>
+        <ul>
+          ${main.map(r => `
+            <li>
+              <span class="personality-title">${r.name}：${r.score} 分</span>
+              <div class="personality-desc">${r.desc}</div>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+
+      ${secondary.length > 0 ? `
+      <div class="result-block">
+        <strong>輔助人格特徵：</strong>
+        <ul>
+          ${secondary.map(r => `
+            <li>
+              <span class="personality-title">${r.name}：${r.score} 分</span>
+              <div class="personality-desc">${r.desc}</div>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+      ` : ""}
+
+      ${others.length > 0 ? `
+      <div class="result-block">
+        <strong>其他人格特徵：</strong>
+        <ul>
+          ${others.map(r => `
+            <li>
+              <span class="personality-title">${r.name}：${r.score} 分</span>
+              <div class="personality-desc">${r.desc}</div>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+      ` : ""}
+          <div style="max-width: 800px; margin: 30px auto 0; font-size: 0.9rem; color: #666; line-height: 1.6;">
+      <strong>參考資料：</strong><br/>
+      本測驗靈感與分類架構參考自：<br/>
+      《<a href="https://www.eslite.com/product/1001110932578806?srsltid=AfmBOooylC-HUfkcRIFiSq5Rbns5SUs92euCfCvxXgFyLL5_R64RdKFI" target="_blank" style="color:#4c51bf;text-decoration:underline;">戀愛這種病：解讀自我與對方的人格，診斷愛情的現在與未來</a>》<br/>
+      原書名：《なぜいつも似たような人を好きになるのか》<br/>
+      作者：岡田尊司　譯者：張婷婷　出版社：時報文化出版企業股份有限公司（2017/04/05）
+    </div>
+    `;
     }
   </script>
 </body>
